@@ -1,9 +1,9 @@
 package index
 
 import (
+	"bitcask-go/data"
 	"bytes"
 	"github.com/google/btree"
-	"kv-db/bitcask/data"
 )
 
 type Indexer interface {

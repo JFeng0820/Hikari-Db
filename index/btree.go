@@ -1,8 +1,8 @@
 package index
 
 import (
+	"bitcask-go/data"
 	"github.com/google/btree"
-	"kv-db/bitcask/data"
 	"sync"
 )
 

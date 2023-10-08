@@ -1,6 +1,6 @@
 package data
 
-import "kv-db/bitcask/fio"
+import "bitcask-go/fio"
 
 const DataFileNameSuffix = ".data"
 

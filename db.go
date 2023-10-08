@@ -1,10 +1,10 @@
 package bitcask
 
 import (
+	"bitcask-go/data"
+	"bitcask-go/index"
 	"errors"
 	"io"
-	"kv-db/bitcask/data"
-	"kv-db/bitcask/index"
 	"os"
 	"sort"
 	"strconv"
@@ -82,6 +82,34 @@ func (db *DB) Put(key []byte, value []byte) error {
 		return ErrIndexUpdateFailed
 	}
 
+	return err
+}
+
+func (db *DB) Delete(key []byte) error {
+	// 判断 key 的有效性
+	if len(key) == 0 {
+		return ErrKeyIsEmpty
+	}
+
+	// 检查 key 是否存在，如果不存在直接返回
+	if pos := db.index.Get(key); pos == nil {
+		return nil
+	}
+
+	// 构造 LogRecord 标识其是被删除的
+	logRecord := &data.LogRecord{Key: key, Type: data.LogRecordDeleted}
+
+	// 写入到数据文件当中
+	_, err := db.appendLogRecord(logRecord)
+	if err != nil {
+		return nil
+	}
+
+	// 从内存索引中将对应的 key 删除
+	ok := db.index.Delete(key)
+	if !ok {
+		return ErrIndexUpdateFailed
+	}
 	return err
 }
 
@@ -281,6 +309,7 @@ func (db *DB) loadIndexFromDataFiles() error {
 			db.activeFile.WriteOff = offset
 		}
 	}
+	return nil
 }
 
 func checkOptions(option Options) error {
@@ -290,4 +319,6 @@ func checkOptions(option Options) error {
 	if option.DataFileSize <= 0 {
 		return errors.New("database data file size must be greater than 0")
 	}
+
+	return nil
 }
