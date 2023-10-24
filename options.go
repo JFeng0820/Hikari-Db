@@ -1,5 +1,7 @@
 package bitcask
 
+import "os"
+
 type Options struct {
 	// 数据库文件目录
 	DirPath string
@@ -23,3 +25,10 @@ const (
 	// ART Adpative Radix Tree 自适应基数树索引
 	ART
 )
+
+var DafaultOptions = Options{
+	DirPath:      os.TempDir(),
+	DataFileSize: 256 * 1024 * 1024, // 256MB
+	SyncWrites:   false,
+	IndexType:    BTree,
+}
