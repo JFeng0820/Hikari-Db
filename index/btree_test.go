@@ -47,3 +47,58 @@ func TestBtree_Delete(t *testing.T) {
 	res4 := bt.Delete([]byte("key"))
 	assert.True(t, res4)
 }
+
+func TestBtree_Iterator(t *testing.T) {
+	bt1 := NewBTree()
+	// 1.Btree 为空的情况
+	iter1 := bt1.Iterator(false)
+	assert.Equal(t, false, iter1.Valid())
+
+	// 2.Btree 有数据的情况下
+	bt1.Put([]byte("code"), &data.LogRecordPos{Fid: 1, Offset: 10})
+	iter2 := bt1.Iterator(false)
+	assert.Equal(t, true, iter2.Valid())
+	assert.NotNil(t, iter2.Value())
+	assert.NotNil(t, iter2.Key())
+	iter2.Next()
+	assert.Equal(t, false, iter2.Valid())
+
+	// 有多条数据
+	bt1.Put([]byte("code"), &data.LogRecordPos{Fid: 1, Offset: 10})
+	bt1.Put([]byte("eeee1"), &data.LogRecordPos{Fid: 1, Offset: 10})
+	bt1.Put([]byte("fgsd"), &data.LogRecordPos{Fid: 1, Offset: 10})
+	bt1.Put([]byte("fewr"), &data.LogRecordPos{Fid: 1, Offset: 10})
+	t.Log("reverse False ===============")
+	iter3 := bt1.Iterator(false)
+	for iter3.Rewind(); iter3.Valid(); iter3.Next() {
+		t.Log("key = ", string(iter3.Key()))
+		assert.NotNil(t, iter3.Key())
+	}
+
+	t.Log("reverse True ===============")
+
+	iter4 := bt1.Iterator(true)
+	for iter4.Rewind(); iter4.Valid(); iter4.Next() {
+		t.Log("key = ", string(iter4.Key()))
+		assert.NotNil(t, iter4.Key())
+	}
+
+	t.Log("测试 seek reverse false ===============")
+
+	// 4. 测试 seek
+	iter5 := bt1.Iterator(false)
+	for iter5.Seek([]byte("ee")); iter5.Valid(); iter5.Next() {
+		t.Log(string(iter5.Key()))
+		assert.NotNil(t, iter5.Key())
+	}
+
+	t.Log("测试 seek reverse true ===============")
+
+	// 5. 测试 seek
+	iter6 := bt1.Iterator(true)
+	for iter6.Seek([]byte("ee")); iter6.Valid(); iter6.Next() {
+		t.Log(string(iter6.Key()))
+		assert.NotNil(t, iter6.Key())
+	}
+
+}
