@@ -41,6 +41,7 @@ type logRecordHeader struct {
 type LogRecordPos struct {
 	Fid    uint32 // 文件 id, 表示将数据存储到拿个文件
 	Offset int64  // 偏移量
+	Size   uint32 // 标识数据在磁盘上的大小
 }
 
 // TransactionRecord 暂存的事务相关的数据
@@ -80,6 +81,27 @@ func EncodeLogRecord(logRecord *LogRecord) ([]byte, int64) {
 	binary.LittleEndian.PutUint32(encBytes[:4], crc)
 
 	return encBytes, int64(size)
+}
+
+// EncodeLogRecordPos 对位置信息进行编码
+func EncodeLogRecordPos(pos *LogRecordPos) []byte {
+	buf := make([]byte, binary.MaxVarintLen32*2+binary.MaxVarintLen64)
+	var index = 0
+	index += binary.PutVarint(buf[index:], int64(pos.Fid))
+	index += binary.PutVarint(buf[index:], pos.Offset)
+	index += binary.PutVarint(buf[index:], int64(pos.Size))
+	return buf[:index]
+}
+
+// DecodeLogRecordPos 解码 LogRecordPos
+func DecodeLogRecordPos(buf []byte) *LogRecordPos {
+	var index = 0
+	fileId, n := binary.Varint(buf[index:])
+	index += n
+	offset, n := binary.Varint(buf[index:])
+	index += n
+	size, _ := binary.Varint(buf[index:])
+	return &LogRecordPos{Fid: uint32(fileId), Offset: offset, Size: uint32(size)}
 }
 
 // 对字节数据中的 Header 进行编码

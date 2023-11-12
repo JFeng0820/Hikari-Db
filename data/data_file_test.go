@@ -55,7 +55,7 @@ func TestDataFile_Sync(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestDataFile_RealLogRecord(t *testing.T) {
+func TestDataFile_ReadLogRecord(t *testing.T) {
 	dataFile, err := OpenDataFile(os.TempDir(), 2)
 	assert.Nil(t, err)
 	assert.NotNil(t, dataFile)
@@ -69,7 +69,7 @@ func TestDataFile_RealLogRecord(t *testing.T) {
 	err = dataFile.Write(res1)
 	assert.Nil(t, err)
 
-	readRec1, readSize1, err := dataFile.RealLogRecord(0)
+	readRec1, readSize1, err := dataFile.ReadLogRecord(0)
 	assert.Nil(t, err)
 	assert.Equal(t, rec1, readRec1)
 	assert.Equal(t, size1, readSize1)
@@ -83,7 +83,7 @@ func TestDataFile_RealLogRecord(t *testing.T) {
 	res2, size2 := EncodeLogRecord(rec2)
 	err = dataFile.Write(res2)
 	assert.Nil(t, err)
-	readRec2, readSize2, err := dataFile.RealLogRecord(size1)
+	readRec2, readSize2, err := dataFile.ReadLogRecord(size1)
 
 	assert.Nil(t, err)
 	assert.Equal(t, rec2, readRec2)
@@ -100,7 +100,7 @@ func TestDataFile_RealLogRecord(t *testing.T) {
 	err = dataFile.Write(res3)
 	assert.Nil(t, err)
 
-	readRec3, readSize3, err := dataFile.RealLogRecord(size1 + size2)
+	readRec3, readSize3, err := dataFile.ReadLogRecord(size1 + size2)
 	assert.Nil(t, err)
 	assert.Equal(t, rec3, readRec3)
 	assert.Equal(t, size3, readSize3)

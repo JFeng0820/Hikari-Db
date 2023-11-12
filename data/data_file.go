@@ -8,7 +8,11 @@ import (
 	"path/filepath"
 )
 
-const DataFileNameSuffix = ".data"
+const (
+	DataFileNameSuffix    = ".data"
+	HintFileName          = "hint-index"
+	MergeFinishedFileName = "merge-finish"
+)
 
 type DataFile struct {
 	FileId    uint32        // 文件 id
@@ -18,7 +22,23 @@ type DataFile struct {
 
 // OpenDataFile 打开新的数据文件
 func OpenDataFile(dirPath string, fileId uint32) (*DataFile, error) {
-	fileName := filepath.Join(dirPath, fmt.Sprintf("%09d", fileId)+DataFileNameSuffix)
+	fileName := GetDataFileName(dirPath, fileId)
+	return newDataFile(fileName, fileId)
+}
+
+// OpenHintFile 打开 Hint 索引文件
+func OpenHintFile(dirPath string) (*DataFile, error) {
+	fileName := filepath.Join(dirPath, HintFileName)
+	return newDataFile(fileName, 0)
+}
+
+// OpenMergeFinishedFile 打开标识 merge 完成文件
+func OpenMergeFinishedFile(dirPath string) (*DataFile, error) {
+	fileName := filepath.Join(dirPath, MergeFinishedFileName)
+	return newDataFile(fileName, 0)
+}
+
+func newDataFile(fileName string, fileId uint32) (*DataFile, error) {
 	// 初始化 IOManager 管理器接口
 	ioManager, err := fio.NewIOManager(fileName)
 	if err != nil {
@@ -31,8 +51,12 @@ func OpenDataFile(dirPath string, fileId uint32) (*DataFile, error) {
 	}, nil
 }
 
-// RealLogRecord 根据 offset 从数据文件中读取 LogRecord
-func (df *DataFile) RealLogRecord(offset int64) (*LogRecord, int64, error) {
+func GetDataFileName(dirPath string, fileId uint32) string {
+	return filepath.Join(dirPath, fmt.Sprintf("%09d", fileId)+DataFileNameSuffix)
+}
+
+// ReadLogRecord 根据 offset 从数据文件中读取 LogRecord
+func (df *DataFile) ReadLogRecord(offset int64) (*LogRecord, int64, error) {
 	fileSize, err := df.IoManager.Size()
 	if err != nil {
 		return nil, 0, err
@@ -91,6 +115,16 @@ func (df *DataFile) Write(buf []byte) error {
 	}
 	df.WriteOff += int64(n)
 	return nil
+}
+
+// WriteHintRecord 写入索引信息到 hint 文件中
+func (df *DataFile) WriteHintRecord(key []byte, pos *LogRecordPos) error {
+	record := &LogRecord{
+		Key:   key,
+		Value: EncodeLogRecordPos(pos),
+	}
+	encRecord, _ := EncodeLogRecord(record)
+	return df.Write(encRecord)
 }
 
 func (df *DataFile) Sync() error {
