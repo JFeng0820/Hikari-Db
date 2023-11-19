@@ -64,6 +64,10 @@ func (bt *Btree) Iterator(reverse bool) Iterator {
 	return newBTreeIterator(bt.tree, reverse)
 }
 
+func (bt *Btree) Close() error {
+	return nil
+}
+
 type btreeIterator struct {
 	currIndex int     // 当前索引下标
 	reverse   bool    // 是否是反向遍历

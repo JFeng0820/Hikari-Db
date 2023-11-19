@@ -17,6 +17,7 @@ func TestDB_NewIterator(t *testing.T) {
 	assert.NotNil(t, db)
 
 	iterator := db.NewIterator(DefaultIteratorOptions)
+	defer iterator.Close()
 	assert.NotNil(t, iterator)
 	assert.Equal(t, false, iterator.Valid())
 }
@@ -34,6 +35,7 @@ func TestDB_NewIterator_One_Value(t *testing.T) {
 	assert.Nil(t, err)
 
 	iterator := db.NewIterator(DefaultIteratorOptions)
+	defer iterator.Close()
 	assert.NotNil(t, iterator)
 	assert.Equal(t, true, iterator.Valid())
 	assert.Equal(t, utils.GetTestKey(10), iterator.Key())
@@ -65,6 +67,7 @@ func TestDB_NewIterator_Multi_Value(t *testing.T) {
 	t.Log("============ 正向迭代start ============")
 
 	iterator := db.NewIterator(DefaultIteratorOptions)
+	defer iterator.Close()
 	for iterator.Rewind(); iterator.Valid(); iterator.Next() {
 		t.Log("key = ", string(iterator.Key()))
 		assert.NotNil(t, iterator.Key())
@@ -82,6 +85,7 @@ func TestDB_NewIterator_Multi_Value(t *testing.T) {
 	iteratorRev := DefaultIteratorOptions
 	iteratorRev.Reverse = true
 	iterator2 := db.NewIterator(iteratorRev)
+	defer iterator.Close()
 	for iterator2.Rewind(); iterator2.Valid(); iterator2.Next() {
 		t.Log("key = ", string(iterator2.Key()))
 		assert.NotNil(t, iterator2.Key())
@@ -99,6 +103,7 @@ func TestDB_NewIterator_Multi_Value(t *testing.T) {
 	iteratorOption3 := DefaultIteratorOptions
 	iteratorOption3.Prefix = []byte("a")
 	iterator3 := db.NewIterator(iteratorOption3)
+	defer iterator.Close()
 	for iterator3.Rewind(); iterator3.Valid(); iterator3.Next() {
 		t.Log("key = ", string(iterator3.Key()))
 		assert.NotNil(t, iterator3.Key())
@@ -110,6 +115,7 @@ func TestDB_NewIterator_Multi_Value(t *testing.T) {
 	iteratorOption4.Prefix = []byte("a")
 	iteratorOption4.Reverse = true
 	iterator4 := db.NewIterator(iteratorOption4)
+	defer iterator.Close()
 	for iterator4.Rewind(); iterator4.Valid(); iterator4.Next() {
 		t.Log("key = ", string(iterator4.Key()))
 		assert.NotNil(t, iterator4.Key())
