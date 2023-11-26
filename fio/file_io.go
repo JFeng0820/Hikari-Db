@@ -25,7 +25,7 @@ func (fio *FileIO) Read(b []byte, offset int64) (int, error) {
 }
 
 // Writer 写入字节数组到文件中
-func (fio *FileIO) Writer(b []byte) (int, error) {
+func (fio *FileIO) Write(b []byte) (int, error) {
 	return fio.fd.Write(b)
 }
 

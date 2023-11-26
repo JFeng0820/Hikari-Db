@@ -22,7 +22,7 @@ func TestNewFileIOManager(t *testing.T) {
 	assert.NotNil(t, fio)
 }
 
-func TestFileIO_Writer(t *testing.T) {
+func TestFileIO_Write(t *testing.T) {
 	path := filepath.Join("/tmp", "a.data")
 	fio, err := NewFileIOManager(path)
 	defer destroyFile(path)
@@ -30,15 +30,15 @@ func TestFileIO_Writer(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, fio)
 
-	n, err := fio.Writer([]byte(""))
+	n, err := fio.Write([]byte(""))
 	assert.Equal(t, 0, n)
 	assert.Nil(t, err)
 
-	n, err = fio.Writer([]byte("hello"))
+	n, err = fio.Write([]byte("hello"))
 	assert.Equal(t, 5, n)
 	assert.Nil(t, err)
 
-	n, err = fio.Writer([]byte("world"))
+	n, err = fio.Write([]byte("world"))
 	assert.Equal(t, 5, n)
 	assert.Nil(t, err)
 
@@ -51,10 +51,10 @@ func TestFileIO_Read(t *testing.T) {
 	assert.Nil(t, err)
 	assert.NotNil(t, fio)
 
-	_, err = fio.Writer([]byte("key-a"))
+	_, err = fio.Write([]byte("key-a"))
 	assert.Nil(t, err)
 
-	_, err = fio.Writer([]byte("key-b"))
+	_, err = fio.Write([]byte("key-b"))
 	assert.Nil(t, err)
 
 	b := make([]byte, 5)

@@ -301,3 +301,76 @@ func TestDB_Sync(t *testing.T) {
 	err = db.Sync()
 	assert.Nil(t, err)
 }
+
+func TestDB_FileLock(t *testing.T) {
+	opts := DefaultOptions
+	dir, _ := os.MkdirTemp("", "bitcask-go-filelock")
+	opts.DirPath = dir
+	db, err := Open(opts)
+	defer destroyDB(db)
+	assert.Nil(t, err)
+	assert.NotNil(t, db)
+
+	_, err = Open(opts)
+	assert.Equal(t, ErrDatabaseIsUsing, err)
+
+	err = db.Close()
+	assert.Nil(t, err)
+
+	db2, err := Open(opts)
+	assert.Nil(t, err)
+	assert.NotNil(t, db2)
+	err = db2.Close()
+	assert.Nil(t, err)
+}
+
+func TestDB_Stat(t *testing.T) {
+	opts := DefaultOptions
+	dir, _ := os.MkdirTemp("", "bitcask-go-stat")
+	opts.DirPath = dir
+	db, err := Open(opts)
+	//defer destroyDB(db)
+	assert.Nil(t, err)
+	assert.NotNil(t, db)
+
+	for i := 100; i < 10000; i++ {
+		err := db.Put(utils.GetTestKey(i), utils.RandomValue(128))
+		assert.Nil(t, err)
+	}
+	for i := 100; i < 1000; i++ {
+		err := db.Delete(utils.GetTestKey(i))
+		assert.Nil(t, err)
+	}
+	for i := 2000; i < 5000; i++ {
+		err := db.Put(utils.GetTestKey(i), utils.RandomValue(128))
+		assert.Nil(t, err)
+	}
+
+	stat := db.Stat()
+	assert.NotNil(t, stat)
+}
+
+//func TestDB_OpenMMap_True(t *testing.T) {
+//	opts := DefaultOptions
+//	opts.DirPath = "/tmp/bitcask-go"
+//
+//	now := time.Now()
+//	db, err := Open(opts)
+//	t.Log("open time ", time.Since(now))
+//
+//	assert.Nil(t, err)
+//	assert.NotNil(t, db)
+//}
+
+//func TestDB_OpenMMap_False(t *testing.T) {
+//	opts := DefaultOptions
+//	opts.DirPath = "/tmp/bitcask-go"
+//	opts.MMapAtStartup = false
+//
+//	now := time.Now()
+//	db, err := Open(opts)
+//	t.Log("open time ", time.Since(now))
+//
+//	assert.Nil(t, err)
+//	assert.NotNil(t, db)
+//}
