@@ -178,7 +178,7 @@ func (db *DB) Merge() error {
 
 func (db *DB) getMergePath() string {
 	dir := path.Dir(path.Clean(db.options.DirPath))
-	base := path.Base(db.options.DirPath)
+	base := utils.GetFileBase(db.options.DirPath)
 	return filepath.Join(dir, base+mergeDirName)
 }
 
@@ -189,6 +189,7 @@ func (db *DB) loadMergeFiles() error {
 	if _, err := os.Stat(mergePath); os.IsNotExist(err) {
 		return nil
 	}
+
 	defer func() {
 		_ = os.RemoveAll(mergePath)
 	}()

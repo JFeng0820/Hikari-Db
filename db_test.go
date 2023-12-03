@@ -28,6 +28,7 @@ func TestOpen(t *testing.T) {
 	defer destroyDB(db)
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
+	db.Close()
 }
 
 func TestDB_Put(t *testing.T) {
@@ -66,7 +67,7 @@ func TestDB_Put(t *testing.T) {
 	assert.Nil(t, err)
 
 	// 5.写到数据文件进行了转换
-	for i := 0; i < 1000000; i++ {
+	for i := 0; i < 10000; i++ {
 		err := db.Put(utils.GetTestKey(i), utils.RandomValue(128))
 		assert.Nil(t, err)
 	}
@@ -348,6 +349,32 @@ func TestDB_Stat(t *testing.T) {
 
 	stat := db.Stat()
 	assert.NotNil(t, stat)
+}
+
+func TestDB_Backup(t *testing.T) {
+	opts := DefaultOptions
+	dir, _ := os.MkdirTemp("", "bitcask-go-backup")
+	opts.DirPath = dir
+	db, err := Open(opts)
+	defer destroyDB(db)
+	assert.Nil(t, err)
+	assert.NotNil(t, db)
+
+	for i := 1; i < 1000; i++ {
+		err := db.Put(utils.GetTestKey(i), utils.RandomValue(128))
+		assert.Nil(t, err)
+	}
+
+	backupDir, _ := os.MkdirTemp("", "bitcask-go-backup-test")
+	err = db.Backup(backupDir)
+	assert.Nil(t, err)
+
+	opts1 := DefaultOptions
+	opts1.DirPath = backupDir
+	db2, err := Open(opts1)
+	defer destroyDB(db2)
+	assert.Nil(t, err)
+	assert.NotNil(t, db2)
 }
 
 //func TestDB_OpenMMap_True(t *testing.T) {

@@ -20,6 +20,8 @@ func TestNewFileIOManager(t *testing.T) {
 
 	assert.Nil(t, err)
 	assert.NotNil(t, fio)
+	// 在 win11 不关闭会被返回错误：The process cannot access the file because it is being used by another process
+	fio.Close()
 }
 
 func TestFileIO_Write(t *testing.T) {
@@ -41,7 +43,8 @@ func TestFileIO_Write(t *testing.T) {
 	n, err = fio.Write([]byte("world"))
 	assert.Equal(t, 5, n)
 	assert.Nil(t, err)
-
+	// 在 win11 不关闭会被返回错误：The process cannot access the file because it is being used by another process
+	fio.Close()
 }
 
 func TestFileIO_Read(t *testing.T) {
@@ -68,6 +71,9 @@ func TestFileIO_Read(t *testing.T) {
 	t.Log(string(b1), n)
 	assert.Equal(t, 5, n)
 	assert.Equal(t, []byte("key-b"), b1)
+
+	// 在 win11 不关闭会被返回错误：The process cannot access the file because it is being used by another process
+	fio.Close()
 }
 
 func TestFileIO_Sync(t *testing.T) {
@@ -79,6 +85,8 @@ func TestFileIO_Sync(t *testing.T) {
 
 	err = fio.Sync()
 	assert.Nil(t, err)
+	// 在 win11 不关闭会被返回错误：The process cannot access the file because it is being used by another process
+	fio.Close()
 }
 
 func TestFileIO_Close(t *testing.T) {
@@ -90,4 +98,6 @@ func TestFileIO_Close(t *testing.T) {
 
 	err = fio.Close()
 	assert.Nil(t, err)
+	// 在 win11 不关闭会被返回错误：The process cannot access the file because it is being used by another process
+	fio.Close()
 }

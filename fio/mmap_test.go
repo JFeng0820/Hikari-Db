@@ -40,5 +40,6 @@ func TestMMap_Read(t *testing.T) {
 	n2, err := mmapIO2.Read(b2, 0)
 	assert.Nil(t, err)
 	assert.Equal(t, 2, n2)
-
+	// 在 win11 不关闭会被返回错误：The process cannot access the file because it is being used by another process
+	mmapIO.Close()
 }

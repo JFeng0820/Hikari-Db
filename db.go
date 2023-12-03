@@ -219,6 +219,12 @@ func (db *DB) Stat() *Stat {
 	}
 }
 
+func (db *DB) Backup(dir string) error {
+	db.mu.Lock()
+	defer db.mu.Unlock()
+	return utils.CopyDir(db.options.DirPath, dir, []string{fileLockName})
+}
+
 // Put 写入 key/value key不为空
 func (db *DB) Put(key []byte, value []byte) error {
 	// 判断 key 是否有效
@@ -601,7 +607,7 @@ func checkOptions(option Options) error {
 func (db *DB) loadSeqNo() error {
 	fileName := filepath.Join(db.options.DirPath, data.SeqNoFileName)
 	if _, err := os.Stat(fileName); os.IsNotExist(err) {
-		return err
+		return nil
 	}
 
 	seqNoFile, err := data.OpenSeqNoFile(db.options.DirPath)
