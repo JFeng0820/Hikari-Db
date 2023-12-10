@@ -85,7 +85,7 @@ func Open(options Options) (*DB, error) {
 		options:    options,
 		mu:         new(sync.RWMutex),
 		olderFiles: make(map[uint32]*data.DataFile),
-		index:      index.NewIndexer(index.IndexType(options.IndexType), options.DirPath, options.SyncWrites),
+		index:      index.NewIndexer(options.IndexType, options.DirPath, options.SyncWrites),
 		isInitial:  isInitial,
 		fileLock:   fileLock,
 	}
@@ -622,6 +622,9 @@ func (db *DB) loadSeqNo() error {
 	}
 	db.seqNo = seqNo
 	db.seqNoFileExists = true
+	if err := seqNoFile.Close(); err != nil {
+		return err
+	}
 	return os.Remove(fileName)
 }
 

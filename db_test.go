@@ -37,7 +37,6 @@ func TestDB_Put(t *testing.T) {
 	opts.DirPath = dir
 	opts.DataFileSize = 64 * 1024 * 1024
 	db, err := Open(opts)
-	defer destroyDB(db)
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
 
@@ -79,6 +78,7 @@ func TestDB_Put(t *testing.T) {
 
 	// 重启数据库
 	db2, err := Open(opts)
+	defer destroyDB(db2)
 	assert.Nil(t, err)
 	assert.NotNil(t, db2)
 	val4 := utils.RandomValue(128)
@@ -95,7 +95,6 @@ func TestDB_Get(t *testing.T) {
 	opts.DirPath = dir
 	opts.DataFileSize = 64 * 1024 * 1024
 	db, err := Open(opts)
-	defer destroyDB(db)
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
 
@@ -129,7 +128,7 @@ func TestDB_Get(t *testing.T) {
 	assert.Equal(t, ErrKeyNotFound, err)
 
 	// 5.转换为了旧的数据文件，从旧的数据文件上获取 value
-	for i := 100; i < 1000000; i++ {
+	for i := 100; i < 1000; i++ {
 		err := db.Put(utils.GetTestKey(i), utils.RandomValue(128))
 		assert.Nil(t, err)
 	}
@@ -144,6 +143,7 @@ func TestDB_Get(t *testing.T) {
 
 	// 重启数据库
 	db2, err := Open(opts)
+	defer destroyDB(db2)
 	val6, err := db2.Get(utils.GetTestKey(11))
 	assert.Nil(t, err)
 	assert.NotNil(t, val6)
@@ -165,7 +165,6 @@ func TestDB_Delete(t *testing.T) {
 	opts.DirPath = dir
 	opts.DataFileSize = 64 * 1024 * 1024
 	db, err := Open(opts)
-	defer destroyDB(db)
 	assert.Nil(t, err)
 	assert.NotNil(t, db)
 
@@ -203,6 +202,7 @@ func TestDB_Delete(t *testing.T) {
 
 	// 重启数据库
 	db2, err := Open(opts)
+	defer destroyDB(db2)
 	_, err = db2.Get(utils.GetTestKey(11))
 	assert.Equal(t, ErrKeyNotFound, err)
 

@@ -8,34 +8,38 @@ import (
 	"testing"
 )
 
+func destroyIndex(index *BPlusTree, path string) {
+	if index != nil {
+		index.Close()
+		err := os.RemoveAll(path)
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
 func TestBPlusTree_Put(t *testing.T) {
 	path := filepath.Join(os.TempDir(), "bptree-put")
 	_ = os.MkdirAll(path, os.ModePerm)
-	defer func() {
-		_ = os.RemoveAll(path)
-	}()
 	tree := NewBPlusTree(path, false)
-	res1 := tree.Put([]byte("aaa"), &data.LogRecordPos{Fid: 123, Offset: 456})
+	defer destroyIndex(tree, path)
+	res1 := tree.Put([]byte("aaa1"), &data.LogRecordPos{Fid: 123, Offset: 456})
 	assert.Nil(t, res1)
-	res2 := tree.Put([]byte("bbb"), &data.LogRecordPos{Fid: 123, Offset: 456})
+	res2 := tree.Put([]byte("bbb2"), &data.LogRecordPos{Fid: 123, Offset: 456})
 	assert.Nil(t, res2)
-	res3 := tree.Put([]byte("ccc"), &data.LogRecordPos{Fid: 123, Offset: 456})
+	res3 := tree.Put([]byte("ccc3"), &data.LogRecordPos{Fid: 123, Offset: 456})
 	assert.Nil(t, res3)
 
-	res4 := tree.Put([]byte("aaa"), &data.LogRecordPos{Fid: 1234, Offset: 7456})
+	res4 := tree.Put([]byte("aaa1"), &data.LogRecordPos{Fid: 1234, Offset: 7456})
 	assert.Equal(t, res4.Fid, uint32(123))
 	assert.Equal(t, res4.Offset, int64(456))
-
 }
 
 func TestBPlusTree_Get(t *testing.T) {
 	path := filepath.Join(os.TempDir(), "bptree-get")
 	_ = os.MkdirAll(path, os.ModePerm)
-	defer func() {
-		_ = os.RemoveAll(path)
-	}()
 	tree := NewBPlusTree(path, false)
-
+	defer destroyIndex(tree, path)
 	pos := tree.Get([]byte("not exist"))
 	t.Log(pos)
 	assert.Nil(t, pos)
@@ -54,11 +58,8 @@ func TestBPlusTree_Get(t *testing.T) {
 func TestBPlusTree_Delete(t *testing.T) {
 	path := filepath.Join(os.TempDir(), "bptree-delete")
 	_ = os.MkdirAll(path, os.ModePerm)
-	defer func() {
-		_ = os.RemoveAll(path)
-	}()
 	tree := NewBPlusTree(path, false)
-
+	defer destroyIndex(tree, path)
 	res1, ok1 := tree.Delete([]byte("not exist"))
 	assert.False(t, ok1)
 	assert.Nil(t, res1)
@@ -77,13 +78,9 @@ func TestBPlusTree_Delete(t *testing.T) {
 func TestBPlusTree_Size(t *testing.T) {
 	path := filepath.Join(os.TempDir(), "bptree-size")
 	_ = os.MkdirAll(path, os.ModePerm)
-	defer func() {
-		_ = os.RemoveAll(path)
-	}()
 	tree := NewBPlusTree(path, false)
-
+	defer destroyIndex(tree, path)
 	assert.Equal(t, 0, tree.Size())
-
 	tree.Put([]byte("aac"), &data.LogRecordPos{Fid: 123, Offset: 999})
 	tree.Put([]byte("abc"), &data.LogRecordPos{Fid: 123, Offset: 999})
 	tree.Put([]byte("acc"), &data.LogRecordPos{Fid: 123, Offset: 999})
@@ -94,11 +91,8 @@ func TestBPlusTree_Size(t *testing.T) {
 func TestBPlusTree_Iterator(t *testing.T) {
 	path := filepath.Join(os.TempDir(), "bptree-iter")
 	_ = os.MkdirAll(path, os.ModePerm)
-	defer func() {
-		_ = os.RemoveAll(path)
-	}()
 	tree := NewBPlusTree(path, false)
-
+	defer destroyIndex(tree, path)
 	tree.Put([]byte("aaa"), &data.LogRecordPos{Fid: 123, Offset: 999})
 	tree.Put([]byte("bbb"), &data.LogRecordPos{Fid: 123, Offset: 999})
 	tree.Put([]byte("ccc"), &data.LogRecordPos{Fid: 123, Offset: 999})
@@ -110,4 +104,5 @@ func TestBPlusTree_Iterator(t *testing.T) {
 		assert.NotNil(t, iter.Key())
 		assert.NotNil(t, iter.Value())
 	}
+	iter.Close()
 }
