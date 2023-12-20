@@ -362,7 +362,7 @@ func (db *DB) getValueByPosition(logRecordPos *data.LogRecordPos) ([]byte, error
 	}
 
 	if logRecord.Type == data.LogRecordDeleted {
-		return nil, err
+		return nil, ErrKeyNotFound
 	}
 
 	return logRecord.Value, nil
