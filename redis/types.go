@@ -35,6 +35,10 @@ func NewRedisDataStructure(options bitcask.Options) (*RedisDataStructure, error)
 	return &RedisDataStructure{db: db}, nil
 }
 
+func (rds *RedisDataStructure) Close() error {
+	return rds.db.Close()
+}
+
 // ================= String 数据结构 =================
 
 func (rds *RedisDataStructure) Set(key []byte, ttl time.Duration, value []byte) error {
@@ -80,11 +84,11 @@ func (rds *RedisDataStructure) Get(key []byte) ([]byte, error) {
 
 // ================= Hash 数据结构 =================
 
-func (rds *RedisDataStructure) HSet(key, field, value []byte) (bool, error) {
+func (rds *RedisDataStructure) HSet(key, field, value []byte) (int, error) {
 	// 先查找元数据
 	meta, err := rds.findMetadata(key, Hash)
 	if err != nil {
-		return false, err
+		return boolToInt(false), err
 	}
 
 	// 构造 Hash 数据部分的 key
@@ -109,9 +113,9 @@ func (rds *RedisDataStructure) HSet(key, field, value []byte) (bool, error) {
 	}
 	_ = wb.Put(encKey, value)
 	if err = wb.Commit(); err != nil {
-		return false, err
+		return boolToInt(false), err
 	}
-	return !exist, nil
+	return boolToInt(!exist), nil
 }
 
 func (rds *RedisDataStructure) HGet(key, field []byte) ([]byte, error) {
@@ -169,10 +173,10 @@ func (rds *RedisDataStructure) HDel(key, field []byte) (bool, error) {
 
 // ================= Set 数据结构 =================
 
-func (rds *RedisDataStructure) SAdd(key, member []byte) (bool, error) {
+func (rds *RedisDataStructure) SAdd(key, member []byte) (int, error) {
 	meta, err := rds.findMetadata(key, Set)
 	if err != nil {
-		return false, err
+		return boolToInt(false), err
 	}
 	sk := &setInternalKey{
 		key:     key,
@@ -187,12 +191,12 @@ func (rds *RedisDataStructure) SAdd(key, member []byte) (bool, error) {
 		_ = wb.Put(key, meta.encode())
 		_ = wb.Put(sk.encode(), nil)
 		if err = wb.Commit(); err != nil {
-			return false, err
+			return boolToInt(false), err
 		}
 		ok = true
 	}
 
-	return ok, nil
+	return boolToInt(ok), nil
 }
 
 func (rds *RedisDataStructure) SIsMember(key, member []byte) (bool, error) {
@@ -340,10 +344,10 @@ func (rds *RedisDataStructure) popInner(key []byte, isLeft bool) ([]byte, error)
 
 // ================= ZSet 数据结构 =================
 
-func (rds *RedisDataStructure) ZAdd(key []byte, score float64, member []byte) (bool, error) {
+func (rds *RedisDataStructure) ZAdd(key []byte, score float64, member []byte) (int, error) {
 	meta, err := rds.findMetadata(key, ZSet)
 	if err != nil {
-		return false, err
+		return boolToInt(false), err
 	}
 
 	// 构造数据部分的key
@@ -358,14 +362,14 @@ func (rds *RedisDataStructure) ZAdd(key []byte, score float64, member []byte) (b
 	// 查看是否已经存在
 	value, err := rds.db.Get(zk.encodeWithMember())
 	if err != nil && err != bitcask.ErrKeyNotFound {
-		return false, err
+		return boolToInt(false), err
 	}
 	if err == bitcask.ErrKeyNotFound {
 		exist = false
 	}
 	if exist {
 		if score == utils.FloatFromBytes(value) {
-			return false, nil
+			return boolToInt(false), nil
 		}
 	}
 
@@ -388,9 +392,9 @@ func (rds *RedisDataStructure) ZAdd(key []byte, score float64, member []byte) (b
 	_ = wb.Put(zk.encodeWithMember(), utils.Float64ToBytes(score))
 	_ = wb.Put(zk.encodeWithScore(), nil)
 	if err = wb.Commit(); err != nil {
-		return false, err
+		return boolToInt(false), err
 	}
-	return !exist, nil
+	return boolToInt(!exist), nil
 }
 
 func (rds *RedisDataStructure) ZScore(key []byte, member []byte) (float64, error) {
@@ -453,4 +457,8 @@ func (rds *RedisDataStructure) findMetadata(key []byte, dataType redisDataType) 
 		}
 	}
 	return meta, nil
+}
+
+func boolToInt(exist bool) int {
+	return map[bool]int{false: 0, true: 1}[exist]
 }
