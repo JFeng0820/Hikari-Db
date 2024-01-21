@@ -12,7 +12,7 @@ bitcask 存储模型是由一个做分布式存储系统的商业化公司 Riak 
 
 ## 设计概要
 
-![image.png](docs/images/simple_design.jpg)
+![image-20240121102808405](images/image-20240121102808405.png)
 
 数据以追加的形式写入日志文件中。每个文件在达到预定大小后关闭，新的写入操作转移到新文件。
 
@@ -50,29 +50,29 @@ Bitcask 定期执行合并操作（compaction），在此过程中，它会删�
     	bitcask "bitcask-go"
     	"fmt"
     )
-
+    
     func main() {
     	// 指定配置
     	opts := bitcask.DefaultOptions
     	opts.DirPath = "/tmp/bitcask-go"
-
+    
     	// 打开数据库
     	db, err := bitcask.Open(opts)
     	if err != nil {
     		panic(err)
     	}
-
+    
     	err = db.Put([]byte("name"), []byte("bitcask"))
     	if err != nil {
     		panic(err)
     	}
-
+    
     	val, err := db.Get([]byte("name"))
     	if err != nil {
     		panic(err)
     	}
     	fmt.Println("val = ", string(val))
-
+    
     	err = db.Delete([]byte("name"))
     	if err != nil {
     		panic(err)
