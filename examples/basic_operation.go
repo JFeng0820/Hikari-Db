@@ -6,8 +6,11 @@ import (
 )
 
 func main() {
+	// 指定配置
 	opts := bitcask.DefaultOptions
 	opts.DirPath = "/tmp/bitcask-go"
+
+	// 打开数据库
 	db, err := bitcask.Open(opts)
 	if err != nil {
 		panic(err)

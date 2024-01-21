@@ -33,7 +33,7 @@ type DB struct {
 	seqNo           uint64                    // 事务序列号，全局递增
 	isMerging       bool                      // 是否正在 merge
 	seqNoFileExists bool                      // 存储事务序列号的文件是否存在
-	isInitial       bool                      //是否是第一次初始化数据目录
+	isInitial       bool                      // 是否是第一次初始化数据目录
 	fileLock        *flock.Flock              // 文件锁保证多进程之间的互斥
 	bytesWrite      uint                      // 累计写了多少个字节
 	reclaimSize     int64                     // 表示有多少数据是无效的
@@ -46,7 +46,7 @@ type Stat struct {
 	DiskSize        int64 // 数据目录所占磁盘空间的大小
 }
 
-// Open 打卡 bitcask 存储引擎实例
+// Open 打开 bitcask 存储引擎实例
 func Open(options Options) (*DB, error) {
 	// 校验用户传入的配置项
 	if err := checkOptions(options); err != nil {
